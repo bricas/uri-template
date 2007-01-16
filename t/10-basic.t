@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 11;
+use Test::More tests => 13;
 
 use_ok( 'URI::Template' );
 
@@ -12,9 +12,16 @@ use_ok( 'URI::Template' );
     is_deeply( [ $template->variables ], [ qw( bar baz ) ], 'variables()' );
     is( "$template", $text, 'as_string()' );
 
-    my $result = $template->process( bar => 'x', baz => 'y' );
-    is( $result, 'http://foo.com/x/y?q=%7B', 'fill()' );
-    isa_ok( $result, 'URI', 'return value from fill() isa URI' );
+    {
+        my $result = $template->process( bar => 'x', baz => 'y' );
+        is( $result, 'http://foo.com/x/y?q=%7B', 'process()' );
+        isa_ok( $result, 'URI', 'return value from process() isa URI' );
+    }
+    {
+        my $result = $template->process_to_string( bar => 'x', baz => 'y' );
+        is( $result, 'http://foo.com/x/y?q=%7B', 'process_to_string()' );
+        ok( !ref $result, 'result is not a ref' );
+    }
 }
 
 {

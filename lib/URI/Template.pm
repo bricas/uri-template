@@ -3,7 +3,7 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use URI;
 use URI::Escape ();
@@ -86,6 +86,18 @@ substitute them in to the template. Returns a URI object.
 =cut
 
 sub process {
+    my $self = shift;
+    return URI->new( $self->process_to_string( @_ ) );
+}
+
+=head2 process_to_string( %vars )
+
+Processes key-values pairs like the C<process> method, but doesn't
+inflate the result to a URI object.
+
+=cut
+
+sub process_to_string {
     my $self   = shift;
     my @vars   = $self->variables;
     my %params = ( ( map { $_ => '' } @vars ), @_ );
@@ -94,8 +106,9 @@ sub process {
     my $regex = '\{(' . join( '|', map quotemeta, @vars ) . ')\}';
     $uri =~ s/$regex/URI::Escape::uri_escape($params{$1})/eg;
 
-    return URI->new( $uri );
+    return $uri;
 }
+
 
 =head1 AUTHOR
 
