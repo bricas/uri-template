@@ -11,7 +11,7 @@ use overload '""' => \&as_string;
 
 =head1 NAME
 
-URI::Template - Object for handle URI templates
+URI::Template - Object for handling URI templates
 
 =head1 SYNOPSIS
 
