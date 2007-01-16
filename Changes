@@ -1,5 +1,8 @@
 Revision history for Perl extension URI::Template
 
+0.03  Tue Jan 16 2007
+    - added a simple deparse() method
+
 0.02  Tue Jan 16 2007
     - added process_to_string() method
 

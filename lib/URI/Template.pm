@@ -3,7 +3,7 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use URI;
 use URI::Escape ();
@@ -19,6 +19,9 @@ URI::Template - Object for handling URI templates
     my $template = URI::Template->new( 'http://example.com/{x}' );
     my $uri      = $template->process( x => 'y' );
     # uri is a URI object with value 'http://example.com/y'
+
+    my %result = $template->deparse( $uri );
+    # %result is ( x => 'y' )
 
 =head1 DESCRIPTION
 
@@ -43,14 +46,17 @@ To install this module via ExtUtils::MakeMaker:
 
 =head1 METHODS
 
-=head2 new( $uri )
+=head2 new( $template )
+
+Creates a new L<URI::Template> instance with the template passed in
+as the first parameter.
 
 =cut
 
 sub new {
     my $class = shift;
-    my $uri   = shift || die 'No template provided';
-    my $self  = bless { uri => $uri }, $class;
+    my $templ = shift || die 'No template provided';
+    my $self  = bless { template => $templ }, $class;
 
     return $self;
 }
@@ -63,7 +69,7 @@ stringified.
 =cut
 
 sub as_string {
-    return $_[ 0 ]->{ uri };
+    return $_[ 0 ]->{ template };
 }
 
 =head2 variables( )
@@ -109,6 +115,26 @@ sub process_to_string {
     return $uri;
 }
 
+=head2 deparse( $uri )
+
+Does some rudimentary deparsing of a uri based on the current template.
+Returns a hash with the extracted values.
+
+=cut
+
+sub deparse {
+    my $self = shift;
+    my $uri  = shift;
+
+    my $templ = $self->as_string;
+    my @vars  = $templ =~ /{(.+?)}/g;
+    $templ =~ s/{.+?}/(.+?)/g;
+    my @matches = $uri =~ /$templ/;
+
+    my %results;
+    @results{ @vars } = @matches;
+    return %results;
+}
 
 =head1 AUTHOR
 
