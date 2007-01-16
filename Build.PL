@@ -3,7 +3,7 @@ use strict;
 use Module::Build;
 
 my $build = Module::Build->new(
-    module_name        => 'URI::Teamplte',
+    module_name        => 'URI::Template',
     dist_author        => 'Brian Cassidy <brian.cassidy@nald.ca>',
     license            => 'perl',
     create_readme      => 1,
