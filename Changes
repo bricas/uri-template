@@ -1,5 +1,8 @@
 Revision history for Perl extension URI::Template
 
+0.04  Mon Jan 22 2007
+    - fix undef values when processing
+
 0.03  Tue Jan 16 2007
     - added a simple deparse() method
 

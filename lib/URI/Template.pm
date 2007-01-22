@@ -3,7 +3,7 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use URI;
 use URI::Escape ();
@@ -106,8 +106,13 @@ inflate the result to a URI object.
 sub process_to_string {
     my $self   = shift;
     my @vars   = $self->variables;
-    my %params = ( ( map { $_ => '' } @vars ), @_ );
+    my %params = @_;
     my $uri    = $self->as_string;
+
+    # fix undef vals
+    for my $var ( @vars ) {
+        $params{ $var } = '' unless defined $params{ $var };
+    }
 
     my $regex = '\{(' . join( '|', map quotemeta, @vars ) . ')\}';
     $uri =~ s/$regex/URI::Escape::uri_escape($params{$1})/eg;
