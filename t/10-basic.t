@@ -9,7 +9,7 @@ use_ok( 'URI::Template' );
     my $text     = 'http://foo.com/{bar}/{baz}?q=%7B';
     my $template = URI::Template->new( $text );
     isa_ok( $template, 'URI::Template' );
-    is_deeply( [ $template->variables ], [ qw( bar baz ) ], 'variables()' );
+    is_deeply( [ sort $template->variables ], [ qw( bar baz ) ], 'variables()' );
     is( "$template", $text, 'as_string()' );
 
     {

@@ -3,7 +3,7 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use URI;
 use URI::Escape ();
@@ -74,7 +74,8 @@ sub as_string {
 
 =head2 variables( )
 
-Returns an array of variable names found in the template.
+Returns an array of variable names found in the template. NB: they
+are returned in random order.
 
 =cut
 

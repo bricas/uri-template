@@ -1,5 +1,10 @@
 Revision history for Perl extension URI::Template
 
+0.05  Thu Apr 19 2007
+    - fix test for variables()
+    - added a note that the results from variables() are in
+      random order
+
 0.04  Mon Jan 22 2007
     - fix undef values when processing
 
