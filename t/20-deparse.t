@@ -23,8 +23,8 @@ use_ok( 'URI::Template' );
     my $template = URI::Template->new( 'http://ex.com/{x}' );
     isa_ok( $template, 'URI::Template' );
     my %input = ( x => 'y' );
-    my $uri      = $template->process( x => 'y' );
+    my $uri = $template->process( x => 'y' );
     is( $uri, 'http://ex.com/y' );
-    my %result   = $template->deparse( $uri );
+    my %result = $template->deparse( $uri );
     is_deeply( \%result, \%input, 'process => deparse' );
 }

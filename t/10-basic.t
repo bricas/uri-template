@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 use_ok( 'URI::Template' );
 
@@ -39,6 +39,10 @@ use_ok( 'URI::Template' );
     {
         my $result = $template->process( );
         is( $result, 'http://foo.com//', 'no value sent' );
+    }
+    {
+        my $result = $template->process( 'y' => '1' );
+        is( $result, 'http://foo.com//', 'no valid keys used' );
     }
 }
 

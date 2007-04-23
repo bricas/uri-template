@@ -1,5 +1,8 @@
 Revision history for Perl extension URI::Template
 
+0.06  Mon Apr 23 2007
+    - added some caching for better deparse() performance [Paul "LeoNerd" Evans]
+
 0.05  Thu Apr 19 2007
     - fix test for variables()
     - added a note that the results from variables() are in

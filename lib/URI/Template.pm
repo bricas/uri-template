@@ -3,7 +3,7 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use URI;
 use URI::Escape ();
@@ -132,13 +132,17 @@ sub deparse {
     my $self = shift;
     my $uri  = shift;
 
-    my $templ = $self->as_string;
-    my @vars  = $templ =~ /{(.+?)}/g;
-    $templ =~ s/{.+?}/(.+?)/g;
-    my @matches = $uri =~ /$templ/;
+    if( !$self->{ deparse_re } ) {
+       my $templ = $self->as_string;
+       $self->{ vars_list } = [ $templ =~ /{(.+?)}/g ];
+       $templ =~ s/{.+?}/(.+?)/g;
+       $self->{ deparse_re } = qr/$templ/;
+    }
+
+    my @matches = $uri =~ $self->{ deparse_re };
 
     my %results;
-    @results{ @vars } = @matches;
+    @results{ @{ $self->{ vars_list } } } = @matches;
     return %results;
 }
 
