@@ -3,7 +3,7 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use URI;
 use URI::Escape ();
@@ -81,13 +81,27 @@ are returned in random order.
 
 sub variables {
     my $self = shift;
-    my %vars = map { $_ => 1 } $self->as_string =~ /{(.+?)}/g;
+    my %vars = map { $_ => 1 } $self->all_variables;
     return keys %vars;
 }
 
-=head2 process( %vars )
+=head2 all_variables( )
 
-Given a list of key-value pairs, it will URI escape the values and
+Returns an array of variable names found as they appear in template --
+in order, duplicates included.
+
+=cut
+
+sub all_variables {
+    my $self = shift;
+    my @vars = $self->as_string =~ /{(.+?)}/g;
+    return @vars;
+}
+
+=head2 process( %vars|\@values )
+
+Given a list of key-value pairs or an array ref of values (for
+positional substitution), it will URI escape the values and
 substitute them in to the template. Returns a URI object.
 
 =cut
@@ -97,14 +111,25 @@ sub process {
     return URI->new( $self->process_to_string( @_ ) );
 }
 
-=head2 process_to_string( %vars )
+=head2 process_to_string( %vars|\@values )
 
-Processes key-values pairs like the C<process> method, but doesn't
+Processes input like the C<process> method, but doesn't
 inflate the result to a URI object.
 
 =cut
 
 sub process_to_string {
+    my $self = shift;
+
+    if( ref $_[ 0 ] ) {
+        return $self->_process_by_position( @_ );
+    }
+    else {
+        return $self->_process_by_key( @_ );
+    }
+}
+
+sub _process_by_key {
     my $self   = shift;
     my @vars   = $self->variables;
     my %params = @_;
@@ -112,11 +137,28 @@ sub process_to_string {
 
     # fix undef vals
     for my $var ( @vars ) {
-        $params{ $var } = '' unless defined $params{ $var };
+        $params{ $var } = defined $params{ $var }
+            ? URI::Escape::uri_escape( $params{ $var } )
+            : '';
     }
 
     my $regex = '\{(' . join( '|', map quotemeta, @vars ) . ')\}';
-    $uri =~ s/$regex/URI::Escape::uri_escape($params{$1})/eg;
+    $uri =~ s/$regex/$params{$1}/eg;
+
+    return $uri;
+}
+
+sub _process_by_position {
+    my $self   = shift;
+    my @params = @{ $_[ 0 ] };
+
+    my $uri = $self->as_string;
+
+    $uri =~ s/{(.+?)}/@params
+        ? defined $params[ 0 ]
+            ? URI::Escape::uri_escape( shift @params )
+            : ''
+        : ''/eg;
 
     return $uri;
 }
