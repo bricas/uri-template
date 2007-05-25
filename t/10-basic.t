@@ -1,9 +1,15 @@
 use strict;
 use warnings;
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 
 use_ok( 'URI::Template' );
+
+# fatal - no template provided
+{
+   eval { URI::Template->new; };
+   ok( $@ );
+}
 
 {
     my $text     = 'http://foo.com/{bar}/{baz}?q=%7B';
