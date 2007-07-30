@@ -3,11 +3,13 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08_01';
 
 use URI;
 use URI::Escape ();
 use overload '""' => \&as_string;
+
+my $unsafe = q(^A-Za-z0-9\-_.~!\$\&'()*+,;=:/?\[\]#@);
 
 =head1 NAME
 
@@ -26,7 +28,7 @@ URI::Template - Object for handling URI templates
 =head1 DESCRIPTION
 
 This is an initial attempt to provide a wrapper around URI templates
-as described at http://www.ietf.org/internet-drafts/draft-gregorio-uritemplate-00.txt
+as described at http://www.ietf.org/internet-drafts/draft-gregorio-uritemplate-01.txt
 
 =head1 INSTALLATION
 
@@ -138,7 +140,7 @@ sub _process_by_key {
     # fix undef vals
     for my $var ( @vars ) {
         $params{ $var } = defined $params{ $var }
-            ? URI::Escape::uri_escape( $params{ $var } )
+            ? URI::Escape::uri_escape( $params{ $var }, $unsafe )
             : '';
     }
 
@@ -156,7 +158,7 @@ sub _process_by_position {
 
     $uri =~ s/{(.+?)}/@params
         ? defined $params[ 0 ]
-            ? URI::Escape::uri_escape( shift @params )
+            ? URI::Escape::uri_escape( shift @params, $unsafe )
             : ''
         : ''/eg;
 

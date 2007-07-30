@@ -1,5 +1,8 @@
 Revision history for Perl extension URI::Template
 
+0.08_01 Sun Jul 29 2007
+    - handle new escaping rules from the latest spec.
+
 0.07  Thu May 24 2007
     - allow the user to pass an array ref to process and process_to_string
       which fills values by position
