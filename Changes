@@ -1,5 +1,9 @@
 Revision history for Perl extension URI::Template
 
+0.08_02 Tue Jul 31 2007
+    - switch to Module::Install
+    - extract part of the test suite into a generic json-formatted structure
+
 0.08_01 Sun Jul 29 2007
     - handle new escaping rules from the latest spec.
 

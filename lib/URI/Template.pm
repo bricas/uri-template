@@ -3,7 +3,7 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.08_01';
+our $VERSION = '0.08_02';
 
 use URI;
 use URI::Escape ();

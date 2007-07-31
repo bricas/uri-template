@@ -1,0 +1,56 @@
+{
+   "variables" : {
+      "e" : "20% tricky",
+      "a" : "fred",
+      "scheme" : "https",
+      "d" : "one two three",
+      "20" : "this-is-spinal-tap",
+      "p" : "quote=to+be+or+not+to+be",
+      "c" : "cheeseburger",
+      "q" : "hullo#world",
+      "b" : "barney",
+      "f" : ""
+   },
+   "tests" : [
+      {
+         "template" : "http://example.org/page1#{a}",
+         "expected" : "http://example.org/page1#fred"
+      },
+      {
+         "template" : "http://example.org/{a}/{b}/",
+         "expected" : "http://example.org/fred/barney/"
+      },
+      {
+         "template" : "http://example.org/{a}{b}/",
+         "expected" : "http://example.org/fredbarney/"
+      },
+      {
+         "template" : "http://example.com/order/{c}/{c}/{c}/",
+         "expected" : "http://example.com/order/cheeseburger/cheeseburger/cheeseburger/"
+      },
+      {
+         "template" : "http://example.org/{d}",
+         "expected" : "http://example.org/one%20two%20three"
+      },
+      {
+         "template" : "http://example.org/{e}",
+         "expected" : "http://example.org/20%25%20tricky"
+      },
+      {
+         "template" : "http://example.com/{f}/",
+         "expected" : "http://example.com//"
+      },
+      {
+         "template" : "{scheme}://{20}.example.org?date={wilma}&option={a}",
+         "expected" : "https://this-is-spinal-tap.example.org?date=&option=fred"
+      },
+      {
+         "template" : "http://example.org?{p}",
+         "expected" : "http://example.org?quote=to+be+or+not+to+be"
+      },
+      {
+         "template" : "http://example.com/{q}",
+         "expected" : "http://example.com/hullo#world"
+      }
+   ]
+}
