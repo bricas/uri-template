@@ -32,15 +32,6 @@ as described at http://www.ietf.org/internet-drafts/draft-gregorio-uritemplate-0
 
 =head1 INSTALLATION
 
-To install this module via Module::Build:
-
-	perl Build.PL
-	./Build         # or `perl Build`
-	./Build test    # or `perl Build test`
-	./Build install # or `perl Build install`
-
-To install this module via ExtUtils::MakeMaker:
-
 	perl Makefile.PL
 	make
 	make test
