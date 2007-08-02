@@ -4,8 +4,8 @@ use warnings;
 use Test::More;
 
 BEGIN {
-	eval "use JSON ();";
-	plan skip_all => "JSON required" if $@;
+    eval "use JSON ();";
+    plan skip_all => "JSON required" if $@;
     plan( 'no_plan' );
     use_ok( 'URI::Template' );
 }

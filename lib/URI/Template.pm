@@ -32,10 +32,10 @@ as described at http://www.ietf.org/internet-drafts/draft-gregorio-uritemplate-0
 
 =head1 INSTALLATION
 
-	perl Makefile.PL
-	make
-	make test
-	make install
+    perl Makefile.PL
+    make
+    make test
+    make install
 
 =head1 METHODS
 
