@@ -114,7 +114,7 @@ inflate the result to a URI object.
 sub process_to_string {
     my $self = shift;
 
-    if( ref $_[ 0 ] ) {
+    if ( ref $_[ 0 ] ) {
         return $self->_process_by_position( @_ );
     }
     else {
@@ -130,7 +130,8 @@ sub _process_by_key {
 
     # fix undef vals
     for my $var ( @vars ) {
-        $params{ $var } = defined $params{ $var }
+        $params{ $var }
+            = defined $params{ $var }
             ? URI::Escape::uri_escape( $params{ $var }, $unsafe )
             : '';
     }
@@ -167,11 +168,11 @@ sub deparse {
     my $self = shift;
     my $uri  = shift;
 
-    if( !$self->{ deparse_re } ) {
-       my $templ = $self->as_string;
-       $self->{ vars_list } = [ $templ =~ /{(.+?)}/g ];
-       $templ =~ s/{.+?}/(.+?)/g;
-       $self->{ deparse_re } = qr/$templ/;
+    if ( !$self->{ deparse_re } ) {
+        my $templ = $self->as_string;
+        $self->{ vars_list } = [ $templ =~ /{(.+?)}/g ];
+        $templ =~ s/{.+?}/(.+?)/g;
+        $self->{ deparse_re } = qr/$templ/;
     }
 
     my @matches = $uri =~ $self->{ deparse_re };

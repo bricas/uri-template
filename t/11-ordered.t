@@ -9,7 +9,11 @@ use_ok( 'URI::Template' );
     my $text     = 'http://foo.com/{arg2}/{arg1}';
     my $template = URI::Template->new( $text );
     isa_ok( $template, 'URI::Template' );
-    is_deeply( [ $template->all_variables ], [ qw( arg2 arg1 ) ], 'all_variables()' );
+    is_deeply(
+        [ $template->all_variables ],
+        [ qw( arg2 arg1 ) ],
+        'all_variables()'
+    );
 
     {
         my $result = $template->process( [ qw( x y ) ] );
@@ -31,7 +35,7 @@ use_ok( 'URI::Template' );
 
     # test with no values
     {
-        my $result = $template->process_to_string( [ ] );
+        my $result = $template->process_to_string( [] );
         is( $result, 'http://foo.com//', 'process w/ no values' );
     }
 }

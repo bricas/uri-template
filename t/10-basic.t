@@ -7,15 +7,19 @@ use_ok( 'URI::Template' );
 
 # fatal - no template provided
 {
-   eval { URI::Template->new; };
-   ok( $@ );
+    eval { URI::Template->new; };
+    ok( $@ );
 }
 
 {
     my $text     = 'http://foo.com/{bar}/{baz}?q=%7B';
     my $template = URI::Template->new( $text );
     isa_ok( $template, 'URI::Template' );
-    is_deeply( [ sort $template->variables ], [ qw( bar baz ) ], 'variables()' );
+    is_deeply(
+        [ sort $template->variables ],
+        [ qw( bar baz ) ],
+        'variables()'
+    );
     is( "$template", $text, 'as_string()' );
 
     {
@@ -43,7 +47,7 @@ use_ok( 'URI::Template' );
         is( $result, 'http://foo.com/%7Bx%7D/', 'values are uri escaped' );
     }
     {
-        my $result = $template->process( );
+        my $result = $template->process();
         is( $result, 'http://foo.com//', 'no value sent' );
     }
     {
