@@ -14,9 +14,11 @@ my @files = glob( 't/data/*.json' );
 
 for my $file ( @files ) {
     open( my $json, $file );
-    my $suite = JSON::jsonToObj( do { local $/; <$json> } );
-    close( $json );
+    my $data = do { local $/; <$json> };
+    close( $json);
 
+    eval { JSON->VERSION( 2 ) };
+    my $suite     = $@ ? JSON::jsonToObj( $data ) : JSON::from_json( $data );
     my %variables = %{ $suite->{ variables } };
 
     my $count = 0;
