@@ -1,6 +1,9 @@
 Revision history for Perl extension URI::Template
 
-0.10  Wed Jan 16 2007
+0.11  Fri Feb 08 2008
+    - require perl 5.6 minimum
+
+0.10  Wed Jan 16 2008
     - fix test suite for JSON 2.x
 
 0.09  Tue Aug 28 2007
