@@ -3,7 +3,7 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 use URI;
 use URI::Escape ();
@@ -172,6 +172,8 @@ sub deparse {
         my $templ = $self->as_string;
         $self->{ vars_list } = [ $templ =~ /{(.+?)}/g ];
         $templ =~ s/{.+?}/(.+?)/g;
+        # If the template ends w/ a match, then make it greedy.
+        $templ =~ s/\Q(.+?)\E$/(.+)/;
         $self->{ deparse_re } = qr/$templ/;
     }
 
@@ -188,7 +190,7 @@ Brian Cassidy E<lt>bricas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007 by Brian Cassidy
+Copyright 2008 by Brian Cassidy
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

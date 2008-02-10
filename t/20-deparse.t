@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 11;
 
 use_ok( 'URI::Template' );
 
@@ -33,4 +33,14 @@ use_ok( 'URI::Template' );
     is( $uri, 'http://ex.com/y' );
     my %result = $template->deparse( $uri );
     is_deeply( \%result, \%input, 'process => deparse' );
+}
+
+{
+    my $template = URI::Template->new( 'http://ex.com/{test}' );
+    isa_ok( $template, 'URI::Template' );
+    my %input = ( test => 'test' );
+    my $uri = $template->process( test => 'test' );
+    is( $uri, 'http://ex.com/test' );
+    my %result = $template->deparse( $uri );
+    is_deeply( \%result, \%input, 'process => deparse w/ multiple chars' );
 }
