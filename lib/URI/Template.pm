@@ -3,7 +3,7 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 use URI;
 use URI::Escape ();
@@ -174,7 +174,7 @@ sub deparse {
         $templ =~ s/{.+?}/(.+?)/g;
         # If the template ends w/ a match, then make it greedy.
         $templ =~ s/\Q(.+?)\E$/(.+)/;
-        $self->{ deparse_re } = qr/$templ/;
+        $self->{ deparse_re } = qr/^${templ}$/;
     }
 
     my @matches = $uri =~ $self->{ deparse_re };

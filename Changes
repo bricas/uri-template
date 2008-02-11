@@ -1,5 +1,8 @@
 Revision history for Perl extension URI::Template
 
+0.13  Mon Feb 11 2008
+    - Properly terminate deparse regex (Karen Cravens)
+
 0.12  Sun Feb 10 2008
     - Attempt to fix deparse() when the template ends in a variable
 

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 11;
+use Test::More tests => 13;
 
 use_ok( 'URI::Template' );
 
@@ -43,4 +43,12 @@ use_ok( 'URI::Template' );
     is( $uri, 'http://ex.com/test' );
     my %result = $template->deparse( $uri );
     is_deeply( \%result, \%input, 'process => deparse w/ multiple chars' );
+}
+
+{
+    my $template = URI::Template->new( 'http://ex.com/profile/{username}/address' );
+    isa_ok( $template, 'URI::Template' );
+    my $uri = 'http://ex.com/profile/Test/addresses';
+    my %result = $template->deparse( $uri );
+    is_deeply( \%result, { username => undef }, 'regex properly terminated' );
 }
