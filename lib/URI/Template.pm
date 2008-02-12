@@ -172,8 +172,6 @@ sub deparse {
         my $templ = $self->as_string;
         $self->{ vars_list } = [ $templ =~ /{(.+?)}/g ];
         $templ =~ s/{.+?}/(.+?)/g;
-        # If the template ends w/ a match, then make it greedy.
-        $templ =~ s/\Q(.+?)\E$/(.+)/;
         $self->{ deparse_re } = qr/^${templ}$/;
     }
 
