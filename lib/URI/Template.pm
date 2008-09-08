@@ -74,7 +74,7 @@ sub _op_gen_join {
       Carp::croak "invalid variable ($key) supplied to join operator"
         if ref $var->{$key};
 
-      push @pairs, $key . '=' . $var->{ $key }; # $self->_op_fill_var( $var->{ $key } );
+      push @pairs, $key . '=' . $var->{$key};
     }
     return join $exp->{arg}, @pairs;
   };

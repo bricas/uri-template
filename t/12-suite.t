@@ -10,7 +10,7 @@ BEGIN {
     use_ok( 'URI::Template' );
 }
 
-my @files = glob( 't/data/spec-other.json' );
+my @files = glob( 't/data/*.json' );
 
 for my $file ( @files ) {
     open( my $json, $file );
