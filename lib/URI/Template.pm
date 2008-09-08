@@ -173,10 +173,10 @@ sub _op_gen_list {
 # not op_gen_* as it is not an op from the spec
 sub _op_fill_var {
     my( $self, $exp ) = @_;
+    my( $var, $default ) = split( /=/, $exp, 2 );
+    $default = '' if !defined $default;
 
     return sub {
-        my( $var, $default ) = split( /=/, $exp, 2 );
-        $default = '' if !defined $default;
         return exists $_[0]->{$var} ? $_[0]->{$var} : $default;
     };
 }
