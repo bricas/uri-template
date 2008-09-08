@@ -10,6 +10,8 @@ name 'URI-Template';
 all_from 'lib/URI/Template.pm';
 
 requires 'URI';
+requires 'URI::Escape';
+requires 'Unicode::Normalize';
 
 test_requires 'Test::More';
 

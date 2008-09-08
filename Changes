@@ -1,5 +1,16 @@
 Revision history for Perl extension URI::Template
 
+0.14_01 Mon Sep 08 2008
+    - Conform to latest spec (draft 03) (Ricardo SIGNES)
+      Due to the new spec, the following are no longer applicable:
+      - deparse()
+      - variables()
+      - all_variables()
+      - passing an arrayref to the process subs
+    - as_string() is now just template() (Ricardo SIGNES)
+    - added expansions() - returns the coderefs used to expand
+      the template (Ricardo SIGNES)
+
 0.13  Tue Feb 12 2008
     - Properly terminate deparse regex (Karen Cravens)
 

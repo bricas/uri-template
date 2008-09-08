@@ -3,13 +3,12 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14_01';
 
 use URI;
-use URI::Escape ();
-use overload '""' => \&as_string;
-
-my $unsafe = q(^A-Za-z0-9\-_.~!\$\&'()*+,;=:/?\[\]#@);
+use URI::Escape qw(uri_escape_utf8);
+use Unicode::Normalize;
+use overload '""' => \&template;
 
 =head1 NAME
 
@@ -22,13 +21,10 @@ URI::Template - Object for handling URI templates
     my $uri      = $template->process( x => 'y' );
     # uri is a URI object with value 'http://example.com/y'
 
-    my %result = $template->deparse( $uri );
-    # %result is ( x => 'y' )
-
 =head1 DESCRIPTION
 
 This is an initial attempt to provide a wrapper around URI templates
-as described at http://www.ietf.org/internet-drafts/draft-gregorio-uritemplate-01.txt
+as described at http://www.ietf.org/internet-drafts/draft-gregorio-uritemplate-03.txt
 
 =head1 INSTALLATION
 
@@ -49,49 +45,171 @@ as the first parameter.
 sub new {
     my $class = shift;
     my $templ = shift || die 'No template provided';
-    my $self  = bless { template => $templ }, $class;
+    my $self  = bless { template => $templ } => $class;
+    
+    $self->_study;
 
     return $self;
 }
 
-=head2 as_string( )
+sub _study {
+    my ($self) = @_;
+    my @hunks = grep { defined && length } split /(\{.+?\})/, $self->template;
+    for (@hunks) {
+      next unless /^\{(.+?)\}$/;
+      $_ = $self->_compile_expansion($1);
+    }
+    $self->{studied} = \@hunks;
+}
 
-Returns the original template string. Also used when the object is
-stringified.
+sub _op_gen_join {
+  my ($self, $exp) = @_;
+
+  return sub {
+    my ($var) = @_;
+
+    my @pairs;
+    for my $key (@{ $exp->{vars} }) {
+      next unless exists $var->{$key};
+      Carp::croak "invalid variable ($key) supplied to join operator"
+        if ref $var->{$key};
+
+      push @pairs, $key . '=' . $var->{$key};
+    }
+    return join $exp->{arg}, @pairs;
+  };
+}
+
+sub _op_gen_opt {
+    my ($self, $exp) = @_;
+
+    Carp::croak "-opt accepts exactly one argument" if @{ $exp->{vars} } != 1;
+
+    my $value   = $exp->{arg};
+    my $varname = $exp->{vars}->[0];
+
+    return sub {
+      my ($var) = @_;
+      return '' unless exists $var->{$varname} and defined $var->{$varname};
+      return '' if ref $var->{$varname} and not @{ $var->{$varname} };
+
+      return $value;
+    };
+}
+
+sub _op_gen_neg {
+    my ($self, $exp) = @_;
+
+    Carp::croak "-neg accepts exactly one argument" if @{ $exp->{vars} } != 1;
+
+    my $value   = $exp->{arg};
+    my $varname = $exp->{vars}->[0];
+
+    return sub {
+      my ($var) = @_;
+      return $value unless exists $var->{$varname} && defined $var->{$varname};
+      return $value if ref $var->{$varname} && !  @{ $var->{$varname} };
+
+      return '';
+    };
+}
+
+sub _op_gen_prefix {
+    my ($self, $exp) = @_;
+
+    Carp::croak "-prefix accepts exactly one argument" if @{$exp->{vars}} != 1;
+
+    my $prefix = $exp->{arg};
+    my $name   = $exp->{vars}->[0];
+
+    return sub {
+      my ($var) = @_;
+      return '' unless exists $var->{$name} && defined $var->{$name};
+      my $array = ref $var->{$name} ? $var->{$name} : [ $var->{$name} ];
+      return '' unless @$array;
+
+      return join '', map { "$prefix$_" } @$array;
+    };
+}
+
+sub _op_gen_suffix {
+    my ($self, $exp) = @_;
+
+    Carp::croak "-suffix accepts exactly one argument" if @{$exp->{vars}} != 1;
+
+    my $suffix = $exp->{arg};
+    my $name   = $exp->{vars}->[0];
+
+    return sub {
+      my ($var) = @_;
+      return '' unless exists $var->{$name} && defined $var->{$name};
+      my $array = ref $var->{$name} ? $var->{$name} : [ $var->{$name} ];
+      return '' unless @$array;
+
+      return join '', map { "$_$suffix" } @$array;
+    };
+}
+
+sub _op_gen_list {
+    my ($self, $exp) = @_;
+
+    Carp::croak "-list accepts exactly one argument" if @{$exp->{vars}} != 1;
+
+    my $joiner = $exp->{arg};
+    my $name   = $exp->{vars}->[0];
+
+    return sub {
+      my ($var) = @_;
+      return '' unless exists $var->{$name} && defined $var->{$name};
+      Carp::croak "variable ($name) used in -list must be an array reference"
+        unless ref $var->{$name};
+
+      return '' unless my @array = @{ $var->{$name} };
+
+      return join $joiner, @array;
+    };
+}
+
+sub _compile_expansion {
+    my ($self, $str) = @_;
+
+    if ($str =~ /\A-([a-z]+)\|(.*?)\|(.+)\z/) {
+      my $exp = { op => $1, arg => $2, vars => [ split /,/, $3 ] };
+      Carp::croak "unknown expansion operator $exp->{op} in $str"
+        unless my $code = $self->can("_op_gen_$exp->{op}");
+
+      return $self->$code($exp);
+    }
+
+    # remove "optional" flag (for opensearch compatibility)
+    $str =~ s{\?$}{};
+
+    return sub { exists $_[0]->{$str} ? $_[0]->{$str} : '' };
+}
+
+=head2 template
+
+This method returns the original template string.
 
 =cut
 
-sub as_string {
+sub template {
     return $_[ 0 ]->{ template };
 }
 
-=head2 variables( )
+=head2 expansions
 
-Returns an array of unique variable names found in the template.
-NB: they are returned in random order.
-
-=cut
-
-sub variables {
-    my $self = shift;
-    my %vars = map { $_ => 1 } $self->all_variables;
-    return keys %vars;
-}
-
-=head2 all_variables( )
-
-Returns an array of variable names found as they appear in template --
-in order, duplicates included.
+This method returns an list of expansions found in the template.  Currently,
+these are just coderefs.  In the future, they will be more interesting.
 
 =cut
 
-sub all_variables {
+sub expansions {
     my $self = shift;
-    my @vars = $self->as_string =~ /{(.+?)}/g;
-    return @vars;
+    return grep { ref } @{ $self->{studied} };
 }
 
-=head2 process( %vars|\@values )
+=head2 process( \%vars )
 
 Given a list of key-value pairs or an array ref of values (for
 positional substitution), it will URI escape the values and
@@ -104,87 +222,40 @@ sub process {
     return URI->new( $self->process_to_string( @_ ) );
 }
 
-=head2 process_to_string( %vars|\@values )
+=head2 process_to_string( \%vars )
 
-Processes input like the C<process> method, but doesn't
-inflate the result to a URI object.
+Processes input like the C<process> method, but doesn't inflate the result to a
+URI object.
 
 =cut
 
 sub process_to_string {
     my $self = shift;
+    my $arg  = @_ == 1 ? $_[0] : { @_ };
 
-    if ( ref $_[ 0 ] ) {
-        return $self->_process_by_position( @_ );
-    }
-    else {
-        return $self->_process_by_key( @_ );
-    }
-}
-
-sub _process_by_key {
-    my $self   = shift;
-    my @vars   = $self->variables;
-    my %params = @_;
-    my $uri    = $self->as_string;
-
-    # fix undef vals
-    for my $var ( @vars ) {
-        $params{ $var }
-            = defined $params{ $var }
-            ? URI::Escape::uri_escape( $params{ $var }, $unsafe )
-            : '';
+    my %data;
+    for my $key (keys %$arg) {
+      $data{ $key } = ref $arg->{$key}
+                    ? [ map { uri_escape_utf8(NFKC($_)) } @{ $arg->{$key} } ]
+                    : uri_escape_utf8(NFKC($arg->{$key}));
     }
 
-    my $regex = '\{(' . join( '|', map quotemeta, @vars ) . ')\}';
-    $uri =~ s/$regex/$params{$1}/eg;
+    my $str = '';
 
-    return $uri;
-}
+    for my $hunk (@{ $self->{studied} }) {
+        if (! ref $hunk) { $str .= $hunk; next; }
 
-sub _process_by_position {
-    my $self   = shift;
-    my @params = @{ $_[ 0 ] };
-
-    my $uri = $self->as_string;
-
-    $uri =~ s/{(.+?)}/@params
-        ? defined $params[ 0 ]
-            ? URI::Escape::uri_escape( shift @params, $unsafe )
-            : ''
-        : ''/eg;
-
-    return $uri;
-}
-
-=head2 deparse( $uri )
-
-Does some rudimentary deparsing of a uri based on the current template.
-Returns a hash with the extracted values.
-
-=cut
-
-sub deparse {
-    my $self = shift;
-    my $uri  = shift;
-
-    if ( !$self->{ deparse_re } ) {
-        my $templ = $self->as_string;
-        $self->{ vars_list } = [ $templ =~ /{(.+?)}/g ];
-        $templ =~ s/{.+?}/(.+?)/g;
-        $self->{ deparse_re } = qr/^${templ}$/;
+        $str .= $hunk->(\%data);
     }
 
-    my @matches = $uri =~ $self->{ deparse_re };
-
-    my %results;
-    @results{ @{ $self->{ vars_list } } } = @matches;
-    return %results;
+    return $str;
 }
 
 =head1 AUTHOR
 
 Brian Cassidy E<lt>bricas@cpan.orgE<gt>
+
+Ricardo SIGNES E<lt>rjbs@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

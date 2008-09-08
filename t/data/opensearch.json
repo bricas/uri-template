@@ -1,0 +1,23 @@
+{
+  "variables": {
+    "bar"    : "a",
+    "x:bar"  : "b"
+  },
+
+  "tests": [
+    {
+      "template": "http://example.org/?q={bar?}",
+      "expected": "http://example.org/?q=a"
+    },
+
+    {
+      "template": "/{dne?}",
+      "expected": "/"
+    },
+
+    {
+      "template": "http://example.org/?q={bar}&r={x:bar}",
+      "expected": "http://example.org/?q=a&r=b"
+    }
+  ]
+}
