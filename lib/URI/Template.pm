@@ -170,6 +170,17 @@ sub _op_gen_list {
     };
 }
 
+# not op_gen_* as it is not an op from the spec
+sub _op_fill_var {
+    my( $self, $exp ) = @_;
+
+    return sub {
+        my( $var, $default ) = split( /=/, $exp, 2 );
+        $default = '' if !defined $default;
+        return exists $_[0]->{$var} ? $_[0]->{$var} : $default;
+    };
+}
+
 sub _compile_expansion {
     my ($self, $str) = @_;
 
@@ -184,7 +195,7 @@ sub _compile_expansion {
     # remove "optional" flag (for opensearch compatibility)
     $str =~ s{\?$}{};
 
-    return sub { exists $_[0]->{$str} ? $_[0]->{$str} : '' };
+    return $self->_op_fill_var( $str );
 }
 
 =head2 template

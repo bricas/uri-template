@@ -1,0 +1,11 @@
+{
+  "variables": {
+  },
+
+  "tests": [
+    {
+      "template": "http://example.org/?q={bar=foo}",
+      "expected": "http://example.org/?q=foo"
+    }
+  ]
+}
