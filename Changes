@@ -10,6 +10,7 @@ Revision history for Perl extension URI::Template
     - as_string() is now just template() (Ricardo SIGNES)
     - added expansions() - returns the coderefs used to expand
       the template (Ricardo SIGNES)
+    - add support for default values (where applicable)
 
 0.13  Tue Feb 12 2008
     - Properly terminate deparse regex (Karen Cravens)

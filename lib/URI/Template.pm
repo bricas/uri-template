@@ -69,12 +69,14 @@ sub _op_gen_join {
     my ($var) = @_;
 
     my @pairs;
-    for my $key (@{ $exp->{vars} }) {
-      next unless exists $var->{$key};
+    for my $keypair (@{ $exp->{vars} }) {
+      my $key = $keypair->[ 0 ];
+      my $val = $keypair->[ 1 ]->( $var );
+      next if !exists $var->{$key} && $val eq '';
       Carp::croak "invalid variable ($key) supplied to join operator"
         if ref $var->{$key};
 
-      push @pairs, $key . '=' . $var->{$key};
+      push @pairs, $key . '=' . $val;
     }
     return join $exp->{arg}, @pairs;
   };
@@ -86,7 +88,7 @@ sub _op_gen_opt {
     Carp::croak "-opt accepts exactly one argument" if @{ $exp->{vars} } != 1;
 
     my $value   = $exp->{arg};
-    my $varname = $exp->{vars}->[0];
+    my $varname = $exp->{vars}->[0]->[0];
 
     return sub {
       my ($var) = @_;
@@ -103,7 +105,7 @@ sub _op_gen_neg {
     Carp::croak "-neg accepts exactly one argument" if @{ $exp->{vars} } != 1;
 
     my $value   = $exp->{arg};
-    my $varname = $exp->{vars}->[0];
+    my $varname = $exp->{vars}->[0]->[0];
 
     return sub {
       my ($var) = @_;
@@ -120,7 +122,7 @@ sub _op_gen_prefix {
     Carp::croak "-prefix accepts exactly one argument" if @{$exp->{vars}} != 1;
 
     my $prefix = $exp->{arg};
-    my $name   = $exp->{vars}->[0];
+    my $name   = $exp->{vars}->[0]->[0];
 
     return sub {
       my ($var) = @_;
@@ -138,7 +140,7 @@ sub _op_gen_suffix {
     Carp::croak "-suffix accepts exactly one argument" if @{$exp->{vars}} != 1;
 
     my $suffix = $exp->{arg};
-    my $name   = $exp->{vars}->[0];
+    my $name   = $exp->{vars}->[0]->[0];
 
     return sub {
       my ($var) = @_;
@@ -156,7 +158,7 @@ sub _op_gen_list {
     Carp::croak "-list accepts exactly one argument" if @{$exp->{vars}} != 1;
 
     my $joiner = $exp->{arg};
-    my $name   = $exp->{vars}->[0];
+    my $name   = $exp->{vars}->[0]->[0];
 
     return sub {
       my ($var) = @_;
@@ -176,7 +178,7 @@ sub _op_fill_var {
     my( $var, $default ) = split( /=/, $exp, 2 );
     $default = '' if !defined $default;
 
-    return sub {
+    return $var, sub {
         return exists $_[0]->{$var} ? $_[0]->{$var} : $default;
     };
 }
@@ -185,7 +187,7 @@ sub _compile_expansion {
     my ($self, $str) = @_;
 
     if ($str =~ /\A-([a-z]+)\|(.*?)\|(.+)\z/) {
-      my $exp = { op => $1, arg => $2, vars => [ split /,/, $3 ] };
+      my $exp = { op => $1, arg => $2, vars => [ map { [ $self->_op_fill_var( $_ ) ] } split /,/, $3 ] };
       Carp::croak "unknown expansion operator $exp->{op} in $str"
         unless my $code = $self->can("_op_gen_$exp->{op}");
 
@@ -195,7 +197,7 @@ sub _compile_expansion {
     # remove "optional" flag (for opensearch compatibility)
     $str =~ s{\?$}{};
 
-    return $self->_op_fill_var( $str );
+    return ( $self->_op_fill_var( $str ) )[ 1 ];
 }
 
 =head2 template
