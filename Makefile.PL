@@ -1,4 +1,4 @@
-use inc::Module::Install 0.68;
+use inc::Module::Install 0.77;
 
 if ( -e 'MANIFEST.SKIP' ) {
     system( 'pod2text lib/URI/Template.pm > README' );
