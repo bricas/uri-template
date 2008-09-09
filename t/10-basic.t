@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 13;
+use Test::More tests => 15;
 
 use_ok( 'URI::Template' );
 
@@ -15,6 +15,7 @@ use_ok( 'URI::Template' );
     my $text     = 'http://foo.com/{bar}/{baz}?q=%7B';
     my $template = URI::Template->new( $text );
     isa_ok( $template, 'URI::Template' );
+    is_deeply( [ sort $template->variables ], [ 'bar', 'baz' ], 'variables()' );
     is( "$template", $text, 'stringify' );
 
     {
@@ -53,6 +54,7 @@ use_ok( 'URI::Template' );
 
 {
     my $template = URI::Template->new( 'http://foo.com/{z}/{z}/' );
+    is_deeply( [ sort $template->variables ], [ 'z' ], 'no duplicates in variables()' );
     my $result = $template->process( 'z' => 'x' );
     is( $result, 'http://foo.com/x/x/', 'multiple replaces' );
 }

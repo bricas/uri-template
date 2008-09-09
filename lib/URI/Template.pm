@@ -45,7 +45,7 @@ as the first parameter.
 sub new {
     my $class = shift;
     my $templ = shift || die 'No template provided';
-    my $self  = bless { template => $templ } => $class;
+    my $self  = bless { template => $templ, _vars => {} } => $class;
     
     $self->_study;
 
@@ -188,6 +188,7 @@ sub _compile_expansion {
 
     if ($str =~ /\A-([a-z]+)\|(.*?)\|(.+)\z/) {
       my $exp = { op => $1, arg => $2, vars => [ map { [ $self->_op_fill_var( $_ ) ] } split /,/, $3 ] };
+      $self->{ _vars }->{ $_->[ 0 ] }++ for @{ $exp->{ vars } };
       Carp::croak "unknown expansion operator $exp->{op} in $str"
         unless my $code = $self->can("_op_gen_$exp->{op}");
 
@@ -197,7 +198,9 @@ sub _compile_expansion {
     # remove "optional" flag (for opensearch compatibility)
     $str =~ s{\?$}{};
 
-    return ( $self->_op_fill_var( $str ) )[ 1 ];
+    my @var = $self->_op_fill_var( $str );
+    $self->{ _vars }->{ $var[ 0 ] }++;
+    return $var[ 1 ];
 }
 
 =head2 template
@@ -208,6 +211,16 @@ This method returns the original template string.
 
 sub template {
     return $_[ 0 ]->{ template };
+}
+
+=head2 variables
+
+Returns an array of unique variable names found in the template. NB: they are returned in random order.
+
+=cut
+
+sub variables {
+    return keys %{ $_[ 0 ]->{ _vars } };
 }
 
 =head2 expansions
