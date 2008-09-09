@@ -15,5 +15,4 @@ requires 'Unicode::Normalize';
 
 test_requires 'Test::More';
 
-auto_install;
 WriteAll;
