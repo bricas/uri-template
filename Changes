@@ -1,5 +1,8 @@
 Revision history for Perl extension URI::Template
 
+0.15  Mon Jan 19 2009
+    - Promote dev release to stable
+
 0.14_01 Tue Sep 09 2008
     - Conform to latest spec (draft 03) (Ricardo SIGNES)
       Due to the new spec, the following are no longer applicable:
