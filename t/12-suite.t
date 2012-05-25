@@ -2,6 +2,7 @@ use strict;
 use warnings;
 
 use Test::More;
+use Scalar::Util ();
 
 BEGIN {
     eval "use JSON ();";
@@ -29,11 +30,34 @@ for my $file ( @files ) {
 
         for my $case ( @$cases ) {
             my( $input, $expect ) = @$case;
-#            my $template = URI::Template->new( $input );
-#            my $result   = $template->process( $variables );
-#            is( $result, $expected, $template );
+            my $template = URI::Template->new( $input );
+            my $result   = ''; # $template->process( $vars );
+             _check_result( $result, $expect, $input );
         }
 
     }
 }
 
+sub _check_result {
+    my( $result, $expect, $input ) = @_;
+
+    # boolean
+    if( Scalar::Util::blessed( $expect ) ) {
+        ok( !defined $result, $input );
+    }
+    # list of possible results
+    elsif( ref $expect ) {
+        my $ok = 0;
+        for my $e ( @$expect ) {
+            if( $result eq $e ) {
+                $ok = 1;
+                last;
+            }
+        }
+        ok( $ok, $input );
+    }
+    # exact comparison
+    else {
+        is( $result, $expect, $input );
+    }
+}
