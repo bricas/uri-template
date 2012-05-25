@@ -5,6 +5,7 @@
 \B\.svn\b
 \B\.git\b
 \.gitignore
+\.gitmodules
 
 # Avoid Makemaker generated and utility files.
 \bMakefile$
@@ -29,3 +30,6 @@
 
 # No tarballs!
 \.gz$
+
+# Ignore submodule README.md
+t/cases/README.md
