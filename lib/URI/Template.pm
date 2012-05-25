@@ -10,38 +10,6 @@ use URI::Escape qw(uri_escape_utf8);
 use Unicode::Normalize;
 use overload '""' => \&template;
 
-=head1 NAME
-
-URI::Template - Object for handling URI templates
-
-=head1 SYNOPSIS
-
-    use URI::Template;
-    my $template = URI::Template->new( 'http://example.com/{x}' );
-    my $uri      = $template->process( x => 'y' );
-    # uri is a URI object with value 'http://example.com/y'
-
-=head1 DESCRIPTION
-
-This is an initial attempt to provide a wrapper around URI templates
-as described at http://www.ietf.org/internet-drafts/draft-gregorio-uritemplate-03.txt
-
-=head1 INSTALLATION
-
-    perl Makefile.PL
-    make
-    make test
-    make install
-
-=head1 METHODS
-
-=head2 new( $template )
-
-Creates a new L<URI::Template> instance with the template passed in
-as the first parameter.
-
-=cut
-
 sub new {
     my $class = shift;
     my $templ = shift || die 'No template provided';
@@ -203,57 +171,24 @@ sub _compile_expansion {
     return $var[ 1 ];
 }
 
-=head2 template
-
-This method returns the original template string.
-
-=cut
-
 sub template {
     return $_[ 0 ]->{ template };
 }
 
-=head2 variables
-
-Returns an array of unique variable names found in the template. NB: they are returned in random order.
-
-=cut
-
 sub variables {
     return keys %{ $_[ 0 ]->{ _vars } };
 }
-
-=head2 expansions
-
-This method returns an list of expansions found in the template.  Currently,
-these are just coderefs.  In the future, they will be more interesting.
-
-=cut
 
 sub expansions {
     my $self = shift;
     return grep { ref } @{ $self->{studied} };
 }
 
-=head2 process( \%vars )
-
-Given a list of key-value pairs or an array ref of values (for
-positional substitution), it will URI escape the values and
-substitute them in to the template. Returns a URI object.
-
-=cut
 
 sub process {
     my $self = shift;
     return URI->new( $self->process_to_string( @_ ) );
 }
-
-=head2 process_to_string( \%vars )
-
-Processes input like the C<process> method, but doesn't inflate the result to a
-URI object.
-
-=cut
 
 sub process_to_string {
     my $self = shift;
@@ -277,6 +212,64 @@ sub process_to_string {
     return $str;
 }
 
+1;
+
+__END__
+
+=head1 NAME
+
+URI::Template - Object for handling URI templates
+
+=head1 SYNOPSIS
+
+    use URI::Template;
+    my $template = URI::Template->new( 'http://example.com/{x}' );
+    my $uri      = $template->process( x => 'y' );
+    # uri is a URI object with value 'http://example.com/y'
+
+=head1 DESCRIPTION
+
+This is an initial attempt to provide a wrapper around URI templates
+as described at http://www.ietf.org/internet-drafts/draft-gregorio-uritemplate-03.txt
+
+=head1 INSTALLATION
+
+    perl Makefile.PL
+    make
+    make test
+    make install
+
+=head1 METHODS
+
+=head2 new( $template )
+
+Creates a new L<URI::Template> instance with the template passed in
+as the first parameter.
+
+=head2 template
+
+This method returns the original template string.
+
+=head2 variables
+
+Returns an array of unique variable names found in the template. NB: they are returned in random order.
+
+=head2 expansions
+
+This method returns an list of expansions found in the template.  Currently,
+these are just coderefs.  In the future, they will be more interesting.
+
+=head2 process( \%vars )
+
+Given a list of key-value pairs or an array ref of values (for
+positional substitution), it will URI escape the values and
+substitute them in to the template. Returns a URI object.
+
+=head2 process_to_string( \%vars )
+
+Processes input like the C<process> method, but doesn't inflate the result to a
+URI object.
+
 =head1 AUTHOR
 
 Brian Cassidy E<lt>bricas@cpan.orgE<gt>
@@ -291,5 +284,3 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 
 
 =cut
-
-1;

@@ -1,64 +1,63 @@
 Revision history for Perl extension URI::Template
 
-0.15  Mon Jan 19 2009
-    - Promote dev release to stable
+0.15 2009-01-19
+ - Promote dev release to stable
 
-0.14_01 Tue Sep 09 2008
-    - Conform to latest spec (draft 03) (Ricardo SIGNES)
-      Due to the new spec, the following are no longer applicable:
-      - deparse()
-      - all_variables()
-      - passing an arrayref to the process subs
-    - as_string() is now just template() (Ricardo SIGNES)
-    - added expansions() - returns the coderefs used to expand
-      the template (Ricardo SIGNES)
-    - add support for default values (where applicable)
+0.14_01 2008-09-09
+ - Conform to latest spec (draft 03) (Ricardo SIGNES) Due to the new spec,
+   the following are no longer applicable:
+    - deparse()
+    - all_variables()
+    - passing an arrayref to the process subs
+ - as_string() is now just template() (Ricardo SIGNES)
+ - added expansions() - returns the coderefs used to expand the template
+   (Ricardo SIGNES)
+ - add support for default values (where applicable)
 
-0.13  Tue Feb 12 2008
-    - Properly terminate deparse regex (Karen Cravens)
+0.13 2008-02-12
+ - Properly terminate deparse regex (Karen Cravens)
 
-0.12  Sun Feb 10 2008
-    - Attempt to fix deparse() when the template ends in a variable
+0.12 2008-02-10
+ - Attempt to fix deparse() when the template ends in a variable
 
-0.11  Fri Feb 08 2008
-    - require perl 5.6 minimum
+0.11 2008-02-08
+ - require perl 5.6 minimum
 
-0.10  Wed Jan 16 2008
-    - fix test suite for JSON 2.x
+0.10 2008-01-16
+ - fix test suite for JSON 2.x
 
-0.09  Tue Aug 28 2007
-    - minor doc update
+0.09 2007-08-28
+ - minor doc update
 
-0.08_02 Tue Jul 31 2007
-    - switch to Module::Install
-    - extract part of the test suite into a generic json-formatted structure
+0.08_02 2007-07-31
+ - switch to Module::Install
+ - extract part of the test suite into a generic json-formatted structure
 
-0.08_01 Sun Jul 29 2007
-    - handle new escaping rules from the latest spec.
+0.08_01 2007-07-29
+ - handle new escaping rules from the latest spec.
 
-0.07  Thu May 24 2007
-    - allow the user to pass an array ref to process and process_to_string
-      which fills values by position
-    - added all_variables() which returns all arguments by position (including
-      duplicates)
+0.07 2007-05-24
+ - allow the user to pass an array ref to process and process_to_string
+   which fills values by position
+ - added all_variables() which returns all arguments by position (including
+   duplicates)
 
-0.06  Mon Apr 23 2007
-    - added some caching for better deparse() performance [Paul "LeoNerd" Evans]
+0.06 2007-04-23
+ - added some caching for better deparse() performance [Paul "LeoNerd"
+   Evans]
 
-0.05  Thu Apr 19 2007
-    - fix test for variables()
-    - added a note that the results from variables() are in
-      random order
+0.05 2007-04-19
+ - fix test for variables()
+ - added a note that the results from variables() are in random order
 
-0.04  Mon Jan 22 2007
-    - fix undef values when processing
+0.04 2007-01-22
+ - fix undef values when processing
 
-0.03  Tue Jan 16 2007
-    - added a simple deparse() method
+0.03 2007-01-16
+ - added a simple deparse() method
 
-0.02  Tue Jan 16 2007
-    - added process_to_string() method
+0.02 2007-01-16
+ - added process_to_string() method
 
-0.01  Mon Jan 15 2007
-    - original version
-
+0.01 2007-01-15
+ - original version

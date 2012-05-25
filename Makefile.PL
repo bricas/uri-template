@@ -1,4 +1,4 @@
-use inc::Module::Install 0.77;
+use inc::Module::Install 1.06;
 
 if ( -e 'MANIFEST.SKIP' ) {
     system( 'pod2text lib/URI/Template.pm > README' );
@@ -14,5 +14,7 @@ requires 'URI::Escape';
 requires 'Unicode::Normalize';
 
 test_requires 'Test::More';
+
+repository 'http://github.com/bricas/uri-template';
 
 WriteAll;
