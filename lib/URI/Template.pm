@@ -3,172 +3,286 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 use URI;
-use URI::Escape qw(uri_escape_utf8);
-use Unicode::Normalize;
+use URI::Escape        ();
+use Unicode::Normalize ();
 use overload '""' => \&template;
+
+my $RESERVED = q(:/?#\[\]\@!\$\&'\(\)\*\+,;=);
+my %TOSTRING = (
+    ''  => \&_tostring,
+    '+' => \&_tostring,
+    '#' => \&_tostring,
+    ';' => \&_tostring_semi,
+    '?' => \&_tostring_query,
+    '&' => \&_tostring_query,
+    '/' => \&_tostring_path,
+    '.' => \&_tostring_path,
+);
 
 sub new {
     my $class = shift;
     my $templ = shift || die 'No template provided';
     my $self  = bless { template => $templ, _vars => {} } => $class;
-    
+
     $self->_study;
 
     return $self;
 }
 
+sub _quote {
+    my ( $val, $safe ) = @_;
+    $safe ||= '';
+
+    # try to mirror python's urllib quote
+    my $unsafe = '^A-Za-z0-9\-\._' . $safe;
+    return URI::Escape::uri_escape_utf8( Unicode::Normalize::NFKC( $val ),
+        $unsafe );
+}
+
+sub _tostring {
+    my ( $var, $value, $exp ) = @_;
+    my $safe = $exp->{ safe };
+
+    if ( ref $value eq 'ARRAY' ) {
+        return join( ',', map { _quote( $_, $safe ) } @$value );
+    }
+    elsif ( ref $value eq 'HASH' ) {
+        return join(
+            ',',
+            map {
+                _quote( $_, $safe )
+                    . ( $var->{ explode } ? '=' : ',' )
+                    . _quote( $value->{ $_ }, $safe )
+                } sort keys %$value
+        );
+    }
+    elsif ( defined $value ) {
+        return _quote(
+            substr( $value, 0, $var->{ prefix } || length( $value ) ),
+            $safe );
+    }
+
+    return;
+}
+
+sub _tostring_semi {
+    my ( $var, $value, $exp ) = @_;
+    my $safe = $exp->{ safe };
+    my $join = $exp->{ op };
+    $join = '&' if $exp->{ op } eq '?';
+
+    if ( ref $value eq 'ARRAY' ) {
+        if ( $var->{ explode } ) {
+            return join( $join,
+                map { $var->{ name } . '=' . _quote( $_, $safe ) } @$value );
+        }
+        else {
+            return $var->{ name } . '='
+                . join( ',', map { _quote( $_, $safe ) } @$value );
+        }
+    }
+    elsif ( ref $value eq 'HASH' ) {
+        if ( $var->{ explode } ) {
+            return join(
+                $join,
+                map {
+                    _quote( $_, $safe ) . '='
+                        . _quote( $value->{ $_ }, $safe )
+                    } sort keys %$value
+            );
+        }
+        else {
+            return $var->{ name } . '=' . join(
+                ',',
+                map {
+                    _quote( $_, $safe ) . ','
+                        . _quote( $value->{ $_ }, $safe )
+                    } sort keys %$value
+            );
+        }
+    }
+    elsif ( defined $value ) {
+        return $var->{ name } unless length( $value );
+        return
+            $var->{ name } . '='
+            . _quote(
+            substr( $value, 0, $var->{ prefix } || length( $value ) ),
+            $safe );
+    }
+
+    return;
+}
+
+sub _tostring_query {
+    my ( $var, $value, $exp ) = @_;
+    my $safe = $exp->{ safe };
+    my $join = $exp->{ op };
+    $join = '&' if $exp->{ op } =~ /[?&]/;
+
+    if ( ref $value eq 'ARRAY' ) {
+        return unless @$value;
+        if ( $var->{ explode } ) {
+            return join( $join,
+                map { $var->{ name } . '=' . _quote( $_, $safe ) } @$value );
+        }
+        else {
+            return $var->{ name } . '='
+                . join( ',', map { _quote( $_, $safe ) } @$value );
+        }
+    }
+    elsif ( ref $value eq 'HASH' ) {
+        return unless keys %$value;
+        if ( $var->{ explode } ) {
+            return join(
+                $join,
+                map {
+                    _quote( $_, $safe ) . '='
+                        . _quote( $value->{ $_ }, $safe )
+                    } sort keys %$value
+            );
+        }
+        else {
+            return $var->{ name } . '=' . join(
+                ',',
+                map {
+                    _quote( $_, $safe ) . ','
+                        . _quote( $value->{ $_ }, $safe )
+                    } sort keys %$value
+            );
+        }
+    }
+    elsif ( defined $value ) {
+        return $var->{ name } . '=' unless length( $value );
+        return
+            $var->{ name } . '='
+            . _quote(
+            substr( $value, 0, $var->{ prefix } || length( $value ) ),
+            $safe );
+    }
+}
+
+sub _tostring_path {
+    my ( $var, $value, $exp ) = @_;
+    my $safe = $exp->{ safe };
+    my $join = $exp->{ op };
+
+    if ( ref $value eq 'ARRAY' ) {
+        return unless @$value;
+        return join(
+            ( $var->{ explode } ? $join : ',' ),
+            map { _quote( $_, $safe ) } @$value
+        );
+    }
+    elsif ( ref $value eq 'HASH' ) {
+        return join(
+            ( $var->{ explode } ? $join : ',' ),
+            map {
+                _quote( $_, $safe )
+                    . ( $var->{ explode } ? '=' : ',' )
+                    . _quote( $value->{ $_ }, $safe )
+                } sort keys %$value
+        );
+    }
+    elsif ( defined $value ) {
+        return _quote(
+            substr( $value, 0, $var->{ prefix } || length( $value ) ),
+            $safe );
+    }
+
+    return;
+}
+
 sub _study {
-    my ($self) = @_;
+    my ( $self ) = @_;
     my @hunks = grep { defined && length } split /(\{.+?\})/, $self->template;
-    for (@hunks) {
-      next unless /^\{(.+?)\}$/;
-      $_ = $self->_compile_expansion($1);
+    for ( @hunks ) {
+        next unless /^\{(.+?)\}$/;
+        $_ = $self->_compile_expansion( $1 );
     }
-    $self->{studied} = \@hunks;
-}
-
-sub _op_gen_join {
-  my ($self, $exp) = @_;
-
-  return sub {
-    my ($var) = @_;
-
-    my @pairs;
-    for my $keypair (@{ $exp->{vars} }) {
-      my $key = $keypair->[ 0 ];
-      my $val = $keypair->[ 1 ]->( $var );
-      next if !exists $var->{$key} && $val eq '';
-      Carp::croak "invalid variable ($key) supplied to join operator"
-        if ref $var->{$key};
-
-      push @pairs, $key . '=' . $val;
-    }
-    return join $exp->{arg}, @pairs;
-  };
-}
-
-sub _op_gen_opt {
-    my ($self, $exp) = @_;
-
-    Carp::croak "-opt accepts exactly one argument" if @{ $exp->{vars} } != 1;
-
-    my $value   = $exp->{arg};
-    my $varname = $exp->{vars}->[0]->[0];
-
-    return sub {
-      my ($var) = @_;
-      return '' unless exists $var->{$varname} and defined $var->{$varname};
-      return '' if ref $var->{$varname} and not @{ $var->{$varname} };
-
-      return $value;
-    };
-}
-
-sub _op_gen_neg {
-    my ($self, $exp) = @_;
-
-    Carp::croak "-neg accepts exactly one argument" if @{ $exp->{vars} } != 1;
-
-    my $value   = $exp->{arg};
-    my $varname = $exp->{vars}->[0]->[0];
-
-    return sub {
-      my ($var) = @_;
-      return $value unless exists $var->{$varname} && defined $var->{$varname};
-      return $value if ref $var->{$varname} && !  @{ $var->{$varname} };
-
-      return '';
-    };
-}
-
-sub _op_gen_prefix {
-    my ($self, $exp) = @_;
-
-    Carp::croak "-prefix accepts exactly one argument" if @{$exp->{vars}} != 1;
-
-    my $prefix = $exp->{arg};
-    my $name   = $exp->{vars}->[0]->[0];
-
-    return sub {
-      my ($var) = @_;
-      return '' unless exists $var->{$name} && defined $var->{$name};
-      my $array = ref $var->{$name} ? $var->{$name} : [ $var->{$name} ];
-      return '' unless @$array;
-
-      return join '', map { "$prefix$_" } @$array;
-    };
-}
-
-sub _op_gen_suffix {
-    my ($self, $exp) = @_;
-
-    Carp::croak "-suffix accepts exactly one argument" if @{$exp->{vars}} != 1;
-
-    my $suffix = $exp->{arg};
-    my $name   = $exp->{vars}->[0]->[0];
-
-    return sub {
-      my ($var) = @_;
-      return '' unless exists $var->{$name} && defined $var->{$name};
-      my $array = ref $var->{$name} ? $var->{$name} : [ $var->{$name} ];
-      return '' unless @$array;
-
-      return join '', map { "$_$suffix" } @$array;
-    };
-}
-
-sub _op_gen_list {
-    my ($self, $exp) = @_;
-
-    Carp::croak "-list accepts exactly one argument" if @{$exp->{vars}} != 1;
-
-    my $joiner = $exp->{arg};
-    my $name   = $exp->{vars}->[0]->[0];
-
-    return sub {
-      my ($var) = @_;
-      return '' unless exists $var->{$name} && defined $var->{$name};
-      Carp::croak "variable ($name) used in -list must be an array reference"
-        unless ref $var->{$name};
-
-      return '' unless my @array = @{ $var->{$name} };
-
-      return join $joiner, @array;
-    };
-}
-
-# not op_gen_* as it is not an op from the spec
-sub _op_fill_var {
-    my( $self, $exp ) = @_;
-    my( $var, $default ) = split( /=/, $exp, 2 );
-    $default = '' if !defined $default;
-
-    return $var, sub {
-        return exists $_[0]->{$var} ? $_[0]->{$var} : $default;
-    };
+    $self->{ studied } = \@hunks;
 }
 
 sub _compile_expansion {
-    my ($self, $str) = @_;
+    my ( $self, $str ) = @_;
 
-    if ($str =~ /\A-([a-z]+)\|(.*?)\|(.+)\z/) {
-      my $exp = { op => $1, arg => $2, vars => [ map { [ $self->_op_fill_var( $_ ) ] } split /,/, $3 ] };
-      $self->{ _vars }->{ $_->[ 0 ] }++ for @{ $exp->{ vars } };
-      Carp::croak "unknown expansion operator $exp->{op} in $str"
-        unless my $code = $self->can("_op_gen_$exp->{op}");
-
-      return $self->$code($exp);
+    my %exp = ( op => '', vars => [], str => $str );
+    if ( $str =~ /^([+#.\/;?&|!\@])(.+)/ ) {
+        $exp{ op }  = $1;
+        $exp{ str } = $2;
     }
 
-    # remove "optional" flag (for opensearch compatibility)
-    $str =~ s{\?$}{};
+    $exp{ safe } = $RESERVED if $exp{ op } =~ m{[+#]};
 
-    my @var = $self->_op_fill_var( $str );
-    $self->{ _vars }->{ $var[ 0 ] }++;
-    return $var[ 1 ];
+    for my $varspec ( split( ',', delete $exp{ str } ) ) {
+        my %var = ( name => $varspec );
+        if ( $varspec =~ /=/ ) {
+            @var{ 'name', 'default' } = split( /=/, $varspec, 2 );
+        }
+        if ( $var{ name } =~ s{\*$}{} ) {
+            $var{ explode } = 1;
+        }
+        elsif ( $var{ name } =~ /:/ ) {
+            @var{ 'name', 'prefix' } = split( /:/, $var{ name }, 2 );
+            if ( $var{ prefix } =~ m{[^0-9]} ) {
+                die 'Non-numeric prefix specified';
+            }
+        }
+
+        # remove "optional" flag (for opensearch compatibility)
+        $var{ name } =~ s{\?$}{};
+        $self->{ _vars }->{ $var{ name } }++;
+
+        push @{ $exp{ vars } }, \%var;
+    }
+
+    my $join  = $exp{ op };
+    my $start = $exp{ op };
+
+    if ( $exp{ op } eq '+' ) {
+        $start = '';
+        $join  = ',';
+    }
+    elsif ( $exp{ op } eq '#' ) {
+        $join = ',';
+    }
+    elsif ( $exp{ op } eq '?' ) {
+        $join = '&';
+    }
+    elsif ( $exp{ op } eq '&' ) {
+        $join = '&';
+    }
+    elsif ( $exp{ op } eq '' ) {
+        $join = ',';
+    }
+
+    if ( !exists $TOSTRING{ $exp{ op } } ) {
+        die 'Invalid operation "' . $exp{ op } . '"';
+    }
+
+    return sub {
+        my $variables = shift;
+
+        my @return;
+        for my $var ( @{ $exp{ vars } } ) {
+            my $value;
+            if ( exists $variables->{ $var->{ name } } ) {
+                $value = $variables->{ $var->{ name } };
+            }
+            $value = $var->{ default } if !defined $value;
+
+            next unless defined $value;
+
+            my $expand = $TOSTRING{ $exp{ op } }->( $var, $value, \%exp );
+
+            push @return, $expand if defined $expand;
+        }
+
+        return $start . join( $join, @return ) if @return;
+        return '';
+    };
 }
 
 sub template {
@@ -181,9 +295,8 @@ sub variables {
 
 sub expansions {
     my $self = shift;
-    return grep { ref } @{ $self->{studied} };
+    return grep { ref } @{ $self->{ studied } };
 }
-
 
 sub process {
     my $self = shift;
@@ -192,21 +305,13 @@ sub process {
 
 sub process_to_string {
     my $self = shift;
-    my $arg  = @_ == 1 ? $_[0] : { @_ };
+    my $arg  = @_ == 1 ? $_[ 0 ] : { @_ };
+    my $str  = '';
 
-    my %data;
-    for my $key (keys %$arg) {
-      $data{ $key } = ref $arg->{$key}
-                    ? [ map { uri_escape_utf8(NFKC($_)) } @{ $arg->{$key} } ]
-                    : uri_escape_utf8(NFKC($arg->{$key}));
-    }
+    for my $hunk ( @{ $self->{ studied } } ) {
+        if ( !ref $hunk ) { $str .= $hunk; next; }
 
-    my $str = '';
-
-    for my $hunk (@{ $self->{studied} }) {
-        if (! ref $hunk) { $str .= $hunk; next; }
-
-        $str .= $hunk->(\%data);
+        $str .= $hunk->( $arg );
     }
 
     return $str;
@@ -218,7 +323,7 @@ __END__
 
 =head1 NAME
 
-URI::Template - Object for handling URI templates
+URI::Template - Object for handling URI templates (RFC 6570)
 
 =head1 SYNOPSIS
 
@@ -229,8 +334,8 @@ URI::Template - Object for handling URI templates
 
 =head1 DESCRIPTION
 
-This is an initial attempt to provide a wrapper around URI templates
-as described at http://www.ietf.org/internet-drafts/draft-gregorio-uritemplate-03.txt
+This module provides a wrapper around URI templates as described in RFC 6570: 
+http://tools.ietf.org/html/rfc6570
 
 =head1 INSTALLATION
 
@@ -270,15 +375,19 @@ substitute them in to the template. Returns a URI object.
 Processes input like the C<process> method, but doesn't inflate the result to a
 URI object.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
-Brian Cassidy E<lt>bricas@cpan.orgE<gt>
+=over 4
 
-Ricardo SIGNES E<lt>rjbs@cpan.orgE<gt>
+=item * Brian Cassidy E<lt>bricas@cpan.orgE<gt>
+
+=item * Ricardo SIGNES E<lt>rjbs@cpan.orgE<gt>
+
+=back
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007-2009 by Brian Cassidy
+Copyright 2007-20012 by Brian Cassidy
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 
