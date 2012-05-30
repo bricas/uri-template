@@ -1,7 +1,7 @@
 Revision history for Perl extension URI::Template
 
-0.16 TO BE RELEASED
- - Conform to latest spec RFC 6570
+0.16 2012-05-30
+ - Conform to latest spec RFC 6570 (RT 66651)
  - Re-use test suite from official github repo
 
 0.15 2009-01-19
