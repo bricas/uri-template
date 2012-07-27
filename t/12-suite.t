@@ -7,6 +7,10 @@ use Scalar::Util ();
 BEGIN {
     eval "use JSON ();";
     plan skip_all => "JSON required" if $@;
+
+    eval { JSON->VERSION( 2 ) };
+    plan skip_all => "JSON version 2 of greater required" if $@;
+
     plan( 'no_plan' );
     use_ok( 'URI::Template' );
 }
@@ -23,8 +27,7 @@ for my $file ( @files ) {
     my $data = do { local $/; <$json> };
     close( $json );
 
-    eval { JSON->VERSION( 2 ) };
-    my $suite = $@ ? JSON::jsonToObj( $data ) : JSON::from_json( $data );
+    my $suite = JSON->new->utf8( 1 )->decode( $data );
 
     for my $name ( sort keys %$suite ) {
         my $info  = $suite->{ $name };
