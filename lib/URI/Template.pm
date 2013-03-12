@@ -3,7 +3,7 @@ package URI::Template;
 use strict;
 use warnings;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use URI;
 use URI::Escape        ();
@@ -393,7 +393,7 @@ URI object.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007-2012 by Brian Cassidy
+Copyright 2007-2013 by Brian Cassidy
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

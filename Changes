@@ -1,5 +1,8 @@
 Revision history for Perl extension URI::Template
 
+0.17 2013-03-11
+ - Special case return from empty hash and array values in query strings
+
 0.16 2012-05-30
  - Conform to latest spec RFC 6570 (RT 66651)
  - Re-use test suite from official github repo
