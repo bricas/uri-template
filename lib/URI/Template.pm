@@ -341,7 +341,7 @@ URI::Template - Object for handling URI templates (RFC 6570)
 =head1 DESCRIPTION
 
 This module provides a wrapper around URI templates as described in RFC 6570: 
-http://tools.ietf.org/html/rfc6570
+L<< http://tools.ietf.org/html/rfc6570 >>.
 
 =head1 INSTALLATION
 
