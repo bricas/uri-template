@@ -123,10 +123,7 @@ sub _tostring_query {
     $join = '&' if $exp->{ op } =~ /[?&]/;
 
     if ( ref $value eq 'ARRAY' ) {
-        if( !@$value ) {
-            return if $var->{ explode };
-            return $var->{ name } . '=';
-        }
+        return if !@$value;
         if ( $var->{ explode } ) {
             return join( $join,
                 map { $var->{ name } . '=' . _quote( $_, $safe ) } @$value );
@@ -137,10 +134,7 @@ sub _tostring_query {
         }
     }
     elsif ( ref $value eq 'HASH' ) {
-        if( !keys %$value ) {
-            return if $var->{ explode };
-            return $var->{ name } . '=';
-        }
+        return if !keys %$value;
         if ( $var->{ explode } ) {
             return join(
                 $join,
