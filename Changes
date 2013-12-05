@@ -1,5 +1,8 @@
 Revision history for Perl extension URI::Template
 
+0.18 2013-12-05
+ - Fix empty hash/array special casing to not return anything
+
 0.17 2013-03-11
  - Special case return from empty hash and array values in query strings
 
