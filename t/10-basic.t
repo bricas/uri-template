@@ -1,14 +1,38 @@
 use strict;
 use warnings;
 
-use Test::More tests => 15;
+use Test::More tests => 21;
 
 use_ok( 'URI::Template' );
 
-# fatal - no template provided
+#   It's ok to have empty template
 {
-    eval { URI::Template->new; };
-    ok( $@ );
+    my $template = URI::Template->new;
+    isa_ok( $template, 'URI::Template' );
+
+    {
+        my $result = $template->process();
+        is( $result, '', 'process() for empty template' );
+        isa_ok( $result, 'URI', 'return value from process() isa URI' );
+    }
+}
+
+#   Update template
+{
+    my $template = URI::Template->new;
+    my $text = '';
+    is( "$template", $text, 'stringify from empty' );
+
+    $text = 'http://foo.com/{bar}/{baz}';
+    $template->template($text);
+
+    is( "$template", $text, 'stringify from updated template' );
+
+    {
+        my $result = $template->process( bar => 'x', baz => 'y' );
+        is( $result, 'http://foo.com/x/y', 'process() for updated template' );
+        isa_ok( $result, 'URI', 'return value from process() isa URI' );
+    }
 }
 
 {
