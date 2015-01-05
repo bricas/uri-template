@@ -5,7 +5,7 @@ use Test::More tests => 21;
 
 use_ok( 'URI::Template' );
 
-#   It's ok to have empty template
+#   new, empty template
 {
     my $template = URI::Template->new;
     isa_ok( $template, 'URI::Template' );
@@ -20,10 +20,9 @@ use_ok( 'URI::Template' );
 #   Update template
 {
     my $template = URI::Template->new;
-    my $text = '';
-    is( "$template", $text, 'stringify from empty' );
+    is( "$template", '', 'stringify from empty' );
 
-    $text = 'http://foo.com/{bar}/{baz}';
+    my $text = 'http://foo.com/{bar}/{baz}';
     $template->template($text);
 
     is( "$template", $text, 'stringify from updated template' );

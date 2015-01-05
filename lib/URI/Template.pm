@@ -340,13 +340,13 @@ URI::Template - Object for handling URI templates (RFC 6570)
 
     use URI::Template;
    
-    my $template = URI::Template->new();
-    $template->template( 'http://example.com/{x}' );
+    my $template = URI::Template->new( 'http://example.com/{x}' );
     my $uri      = $template->process( x => 'y' );
 
-    or
+    # or
     
-    my $template = URI::Template->new( 'http://example.com/{x}' );
+    my $template = URI::Template->new();
+    $template->template( 'http://example.com/{x}' );
     my $uri      = $template->process( x => 'y' );
     
     # uri is a URI object with value 'http://example.com/y'
@@ -368,11 +368,12 @@ L<< http://tools.ietf.org/html/rfc6570 >>.
 =head2 new( $template )
 
 Creates a new L<URI::Template> instance with the template passed in
-as the first parameter (template string is optional).
+as the first parameter (optional).
 
 =head2 template( $template )
 
-This method returns the original template string or sets new template string and parses it (if provided).
+This method returns the original template string. If provided, it will also set and parse a 
+new template string.
 
 =head2 variables
 
