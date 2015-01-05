@@ -1,5 +1,9 @@
 Revision history for Perl extension URI::Template
 
+0.19 2015-01-05
+ - Allow empty template as per spec (RT 101109)
+ - template() now accepts a new string as an argument (Artem Krivopolenov)
+
 0.18 2013-12-05
  - Fix empty hash/array special casing to not return anything
 
