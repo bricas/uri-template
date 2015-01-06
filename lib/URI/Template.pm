@@ -24,7 +24,8 @@ my %TOSTRING = (
 
 sub new {
     my $class = shift;
-    my $templ = shift || '';
+    my $templ = shift;
+    $templ = '' unless defined $templ;
     my $self  = bless { template => $templ, _vars => {} } => $class;
 
     $self->_study;
@@ -287,11 +288,11 @@ sub _compile_expansion {
 
 sub template {
     my $self = shift;
-    my $new_template = shift;
+    my $templ = shift;
 
     #   Update template
-    if ( $new_template && $new_template ne $self->{ template } ) {
-        $self->{ template } = $new_template;
+    if ( defined $templ && $templ ne $self->{ template } ) {
+        $self->{ template } = $templ;
         $self->{ _vars } = {};
         $self->_study;
         return $self;

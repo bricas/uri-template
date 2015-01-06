@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 21;
+use Test::More tests => 28;
 
 use_ok( 'URI::Template' );
 
@@ -13,6 +13,29 @@ use_ok( 'URI::Template' );
     {
         my $result = $template->process();
         is( $result, '', 'process() for empty template' );
+        isa_ok( $result, 'URI', 'return value from process() isa URI' );
+    }
+}
+
+#   "0" as a template
+{
+    my $template = URI::Template->new( '0' );
+    isa_ok( $template, 'URI::Template' );
+    is( $template->template, '0', 'template() is "0"' );
+
+    {
+        my $result = $template->process();
+        is( $result, '0', 'process() for "0" template' );
+        isa_ok( $result, 'URI', 'return value from process() isa URI' );
+    }
+
+    # set template back to empty
+    $template->template( '' );
+    is( $template->template, '', 'template() is empty' );
+
+    {
+        my $result = $template->process();
+        is( $result, '', 'process() for new empty template' );
         isa_ok( $result, 'URI', 'return value from process() isa URI' );
     }
 }
