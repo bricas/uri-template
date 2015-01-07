@@ -39,7 +39,7 @@ use_ok( 'URI::Template' );
     my $text     = 'http://foo.com/{bar}/{baz}?{foo}=%7B&{abr}=1';
     my $template = URI::Template->new( $text );
     isa_ok( $template, 'URI::Template' );
-    is_deeply( [ $template->variables ], [ 'bar', 'baz', 'foo', 'abr' ], 'variables() in order of appearence' );
+    is_deeply( [ $template->variables ], [ 'bar', 'baz', 'foo', 'abr' ], 'variables() in order of appearance' );
     is( "$template", $text, 'stringify' );
 
     {
