@@ -377,7 +377,7 @@ This method returns the original template string or sets new template string and
 
 =head2 variables
 
-Returns an array of unique variable names found in the template. NB: they are returned in random order.
+Returns an array of unique variable names found in the template (in the order of appearance).
 
 =head2 expansions
 
