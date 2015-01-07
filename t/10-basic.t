@@ -36,20 +36,20 @@ use_ok( 'URI::Template' );
 }
 
 {
-    my $text     = 'http://foo.com/{bar}/{baz}?q=%7B';
+    my $text     = 'http://foo.com/{bar}/{baz}?{foo}=%7B&{abr}=1';
     my $template = URI::Template->new( $text );
     isa_ok( $template, 'URI::Template' );
-    is_deeply( [ sort $template->variables ], [ 'bar', 'baz' ], 'variables()' );
+    is_deeply( [ $template->variables ], [ 'bar', 'baz', 'foo', 'abr' ], 'variables() in order of appearence' );
     is( "$template", $text, 'stringify' );
 
     {
-        my $result = $template->process( bar => 'x', baz => 'y' );
-        is( $result, 'http://foo.com/x/y?q=%7B', 'process()' );
+        my $result = $template->process( bar => 'x', baz => 'y', foo => 'b', abr => 'a' );
+        is( $result, 'http://foo.com/x/y?b=%7B&a=1', 'process()' );
         isa_ok( $result, 'URI', 'return value from process() isa URI' );
     }
     {
-        my $result = $template->process_to_string( bar => 'x', baz => 'y' );
-        is( $result, 'http://foo.com/x/y?q=%7B', 'process_to_string()' );
+        my $result = $template->process_to_string( bar => 'x', baz => 'y', foo => 'b', abr => 'a' );
+        is( $result, 'http://foo.com/x/y?b=%7B&a=1', 'process_to_string()' );
         ok( !ref $result, 'result is not a ref' );
     }
 }
