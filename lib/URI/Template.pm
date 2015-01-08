@@ -199,15 +199,16 @@ sub _tostring_path {
 sub _study {
     my ( $self ) = @_;
     my @hunks = grep { defined && length } split /(\{.+?\})/, $self->template;
+    my $pos = 1;
     for ( @hunks ) {
         next unless /^\{(.+?)\}$/;
-        $_ = $self->_compile_expansion( $1 );
+        $_ = $self->_compile_expansion( $1, $pos++ );
     }
     $self->{ studied } = \@hunks;
 }
 
 sub _compile_expansion {
-    my ( $self, $str ) = @_;
+    my ( $self, $str, $pos ) = @_;
 
     my %exp = ( op => '', vars => [], str => $str );
     if ( $str =~ /^([+#.\/;?&|!\@])(.+)/ ) {
@@ -234,7 +235,7 @@ sub _compile_expansion {
 
         # remove "optional" flag (for opensearch compatibility)
         $var{ name } =~ s{\?$}{};
-        $self->{ _vars }->{ $var{ name } }++;
+        $self->{ _vars }->{ $var{ name } } = $pos;
 
         push @{ $exp{ vars } }, \%var;
     }
@@ -302,7 +303,7 @@ sub template {
 }
 
 sub variables {
-    return keys %{ $_[ 0 ]->{ _vars } };
+    return sort {$_[ 0 ]->{ _vars }->{ $a } <=> $_[ 0 ]->{ _vars }->{ $b } } keys %{ $_[ 0 ]->{ _vars } };
 }
 
 sub expansions {
@@ -378,7 +379,7 @@ new template string.
 
 =head2 variables
 
-Returns an array of unique variable names found in the template. NB: they are returned in random order.
+Returns an array of unique variable names found in the template (in the order of appearance).
 
 =head2 expansions
 
