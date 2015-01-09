@@ -1,5 +1,9 @@
 Revision history for Perl extension URI::Template
 
+0.21 2015-01-08
+ - variables() now returns items in their order of appearance (Artem 
+   Krivopolenov)
+
 0.20 2015-01-05
  - Handle "0" as a template properly (RT 101109)
 
