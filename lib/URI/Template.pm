@@ -303,7 +303,8 @@ sub template {
 }
 
 sub variables {
-    return sort {$_[ 0 ]->{ _vars }->{ $a } <=> $_[ 0 ]->{ _vars }->{ $b } } keys %{ $_[ 0 ]->{ _vars } };
+    my @vars = sort {$_[ 0 ]->{ _vars }->{ $a } <=> $_[ 0 ]->{ _vars }->{ $b } } keys %{ $_[ 0 ]->{ _vars } };
+    return @vars;
 }
 
 sub expansions {

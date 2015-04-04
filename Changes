@@ -1,5 +1,8 @@
 Revision history for Perl extension URI::Template
 
+0.22 TBD
+ - Fix regression in variables() when called in list context (GH #4)
+
 0.21 2015-01-08
  - variables() now returns items in their order of appearance (Artem 
    Krivopolenov)
