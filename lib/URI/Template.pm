@@ -43,10 +43,12 @@ sub _quote {
     if( $safe ) {
         my (@chunks) = split(/(%[0-9A-Fa-f]{2})/, $val);
 
-        return join('',
-                    map { $_ !~ /%[0-9A-Fa-f]{2}/
-                          ? URI::Escape::uri_escape_utf8( Unicode::Normalize::NFKC( $_ ), $unsafe )
-                          : $_ } @chunks);
+        # even chunks are not %xx, odd chunks are
+        return join '',
+            map { $_ % 2
+                  ? $chunks[$_]
+                  : URI::Escape::uri_escape_utf8( Unicode::Normalize::NFKC($chunks[$_]), $unsafe ) } 0..$#chunks;
+
     }
 
     # try to mirror python's urllib quote
