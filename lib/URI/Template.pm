@@ -36,9 +36,20 @@ sub new {
 sub _quote {
     my ( $val, $safe ) = @_;
     $safe ||= '';
+    my $unsafe = '^A-Za-z0-9\-\._' . $safe;
+
+    ## Where RESERVED are allowed to pass-through, so are
+    ## already-pct-encoded values
+    if( $safe ) {
+        my (@chunks) = split(/(%[0-9A-Fa-f]{2})/, $val);
+
+        return join('',
+                    map { $_ !~ /%[0-9A-Fa-f]{2}/
+                          ? URI::Escape::uri_escape_utf8( Unicode::Normalize::NFKC( $_ ), $unsafe )
+                          : $_ } @chunks);
+    }
 
     # try to mirror python's urllib quote
-    my $unsafe = '^A-Za-z0-9\-\._' . $safe;
     return URI::Escape::uri_escape_utf8( Unicode::Normalize::NFKC( $val ),
         $unsafe );
 }
