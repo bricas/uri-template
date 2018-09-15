@@ -379,7 +379,7 @@ URI::Template - Object for handling URI templates (RFC 6570)
    
     my $template = URI::Template->new( 'http://example.com/{x}' );
     my $uri      = $template->process( x => 'y' );
-
+    
     # or
     
     my $template = URI::Template->new();
@@ -387,6 +387,12 @@ URI::Template - Object for handling URI templates (RFC 6570)
     my $uri      = $template->process( x => 'y' );
     
     # uri is a URI object with value 'http://example.com/y'
+
+or
+
+    use URI::Template ':template_process'
+    
+    my $uri = template_process ( 'http://example.com/{x}', x => 'y' );
 
 =head1 DESCRIPTION
 
@@ -431,6 +437,19 @@ substitute them in to the template. Returns a URI object.
 
 Processes input like the C<process> method, but doesn't inflate the result to a
 URI object.
+
+=head1 EXPORTED FUNCTIONS
+
+=head2 template_process( $template => \%vars )
+
+This is the same as C<< URI::Template->new($template)->process(\%vars) >> But
+shorter, and usefull for quick and easy genrating a nice URI form parameters.
+
+Returns an L<URI> object
+
+=head2 template_process_as_string( $template => \%vars )
+
+Same as above, but obviously, returns a string.
 
 =head1 AUTHORS
 
