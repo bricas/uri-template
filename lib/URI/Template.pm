@@ -10,6 +10,19 @@ use URI::Escape        ();
 use Unicode::Normalize ();
 use overload '""' => \&template;
 
+use Exporter 'import';
+
+our @EXPORT = qw ( );
+
+our @EXPORT_OK = qw (
+    template_process
+    template_process_to_string
+);
+
+our %EXPORT_TAGS = (
+    'all' => \@EXPORT_OK,
+);
+
 my $RESERVED = q(:/?#\[\]\@!\$\&'\(\)\*\+,;=);
 my %TOSTRING = (
     ''  => \&_tostring,
@@ -344,6 +357,14 @@ sub process_to_string {
     return $str;
 }
 
+sub template_process {
+    __PACKAGE__->new(shift)->process(@_)
+}
+
+sub template_process_to_string {
+    __PACKAGE__->new(shift)->process_to_string(@_)
+}
+
 1;
 
 __END__
@@ -421,9 +442,15 @@ URI object.
 
 =back
 
+=head1 CONTRIBUTERS
+
+=over 4
+
+=item * Theo van Hoesel E<lt>Th.J.v.Hoesel@THEMA-MEDIA.nlE<gt>
+
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007-2015 by Brian Cassidy
+Copyright 2007-2018 by Brian Cassidy
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 
