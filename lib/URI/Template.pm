@@ -467,6 +467,8 @@ Same as above, but obviously, returns a string.
 
 =item * Theo van Hoesel E<lt>Th.J.v.Hoesel@THEMA-MEDIA.nlE<gt>
 
+=back
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright 2007-2018 by Brian Cassidy
